@@ -1,10 +1,11 @@
 """
 Fauxmo plugin that provides access to services exposing by Z-Wave REST API.
 
-Tested on z-way v2.3.8 / SmartHomeUI v1.9.0.
+Tested on z-way v3.2.3 (sep 2022)
 For zway-server see https://z-wave.me/z-way/
-See "Z-Way Essentials" doc for API details.
+See "Z-Way Manual" for API details.
 Added by Jorge Rivera in June 2019.
+Updated by Joge Rivera in September 2022.
 
 Uses `requests` for a simpler api.
 
@@ -19,8 +20,7 @@ Example config:
         "path": "/path/to/zwaveplugin.py",
         "zwave_host" : "localhost",
         "zwave_port" : "8083",
-        "zwave_user" : "admin",
-        "zwave_pass" : "your_pass",
+        "zwave_auth" : "ZWAYSession-token",
         "fake_state" : false,
         "DEVICES": [
           {
@@ -40,14 +40,14 @@ Example config:
 ```
 
 Dependencies:
-    requests==2.28.2
+    requests
 """
 
 import requests
 from fauxmo import logger
 from fauxmo.plugins import FauxmoPlugin
 
-ZwavePlugin_version = "v0.3"
+ZwavePlugin_version = "v0.4"
 
 response_ok = '{"data":null,"code":200,"message":"200 OK","error":null}'
 
@@ -72,6 +72,7 @@ class ZwavePlugin(FauxmoPlugin):
         zwave_port: int = 8083,
         zwave_user: str = "admin",
         zwave_pass: str = None,
+        zwave_auth: str = None,
         fake_state: bool = False,
         state: str = "unknown",
     ) -> None:
@@ -82,6 +83,7 @@ class ZwavePlugin(FauxmoPlugin):
             zwave_port: TCP port running zway-server (default 8083)
             zwave_user: Zwave user
             zwave_pass: Zwave user password
+            zwave_auth: Zwave authorization bearer ZWAYSession token (preferent) 
             fake_state: Set to true for it does not exec a query for status,
                         it returns the previous status stored
             state:      Initial device status
@@ -91,6 +93,7 @@ class ZwavePlugin(FauxmoPlugin):
         self.zwave_port = zwave_port
         self.zwave_user = zwave_user
         self.zwave_pass = zwave_pass
+        self.zwave_auth = zwave_auth
         self.zwave_device = device
         self.fake_state = fake_state
 
@@ -116,7 +119,10 @@ class ZwavePlugin(FauxmoPlugin):
         logger.info(f"ZwavePlugin: Getting {url} ")
 
         try:
-            resp = requests.get(url, auth=(self.zwave_user, self.zwave_pass))
+            if self.zwave_auth:
+                resp = requests.get(url, headers={"Authorization": "Bearer ZWAYSession/%s" % self.zwave_auth })
+            else:
+                resp = requests.get(url, auth=(self.zwave_user, self.zwave_pass))
         except Exception as e:
             logger.error(f"ZwavePlugin: {e}")
             return False
@@ -172,7 +178,10 @@ class ZwavePlugin(FauxmoPlugin):
         logger.info(f"ZwavePlugin: Getting {url} ")
 
         try:
-            resp = requests.get(url, auth=(self.zwave_user, self.zwave_pass))
+            if self.zwave_auth:
+                resp = requests.get(url, headers={"Authorization": "Bearer ZWAYSession/%s" % self.zwave_auth })
+            else:
+                resp = requests.get(url, auth=(self.zwave_user, self.zwave_pass))
         except Exception as e:
             logger.error(f"ZwavePlugin: {e}")
             return "unknown"
