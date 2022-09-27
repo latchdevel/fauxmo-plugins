@@ -171,9 +171,8 @@ class ZwavePlugin(FauxmoPlugin):
             + self.zwave_host
             + ":"
             + str(self.zwave_port)
-            + "/JS/Run/controller.devices.get('"
+            + "/ZAutomation/api/v1/devices/"
             + self.zwave_device
-            + "').get('metrics:level')"
         )
         logger.info(f"ZwavePlugin: Getting {url} ")
 
@@ -187,8 +186,13 @@ class ZwavePlugin(FauxmoPlugin):
             return "unknown"
 
         if resp.status_code == 200:
-            if resp.text == '"off"' or resp.text == '"on"':
-                return resp.text.strip('"')
+            resp_json = resp.json()
+            if "data" in resp_json:
+                if "metrics" in resp_json["data"]:
+                    if "level" in resp_json["data"]["metrics"]:
+                        text = resp_json["data"]["metrics"]["level"]
+                        if text == "off" or text == "on":
+                            return text
 
         logger.error(f"ZwavePlugin: {resp.status_code} {resp.text} ")
         return "unknown"
