@@ -98,9 +98,9 @@ class ZwavePlugin(FauxmoPlugin):
         self.fake_state = fake_state
 
         logger.info(
-            f"ZwavePlugin: {ZwavePlugin_version} "
-            + "name: {name} device: {device} "
-            + "port: {port} fake_state: {fake_state}"
+            f"ZwavePlugin: {ZwavePlugin_version} " \
+            f"name: '{name}' device: {device} " \
+            f"port: {port} fake_state: {fake_state}"
         )
 
         super().__init__(name=name, port=port)
