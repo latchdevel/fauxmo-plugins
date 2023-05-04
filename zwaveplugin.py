@@ -1,11 +1,11 @@
 """
 Fauxmo plugin that provides access to services exposing by Z-Wave REST API.
 
-Tested on z-way v3.2.3 (sep 2022)
+Tested on z-way v4.0.0 (may 2023)
 For zway-server see https://z-wave.me/z-way/
 See "Z-Way Manual" for API details.
 Added by Jorge Rivera in June 2019.
-Updated by Joge Rivera in September 2022.
+Updated by Joge Rivera in Sep 2022 and May 2023.
 
 Uses `requests` for a simpler api.
 
@@ -47,7 +47,7 @@ import requests
 from fauxmo import logger
 from fauxmo.plugins import FauxmoPlugin
 
-ZwavePlugin_version = "v0.4"
+ZwavePlugin_version = "v0.5"
 
 response_ok = '{"data":null,"code":200,"message":"200 OK","error":null}'
 
@@ -188,7 +188,12 @@ class ZwavePlugin(FauxmoPlugin):
                 if "metrics" in resp_json["data"]:
                     if "level" in resp_json["data"]["metrics"]:
                         text = resp_json["data"]["metrics"]["level"]
-                        if text == "off" or text == "on":
+                        if text == "off" or text == "close" or text == "closed":
+                            return "off"
+                        elif text == "on" or text == "open":
+                            return "on"
+                        else:
+                            logger.info(f"ZwavePlugin: unknown level: {text} ")
                             return text
 
         logger.error(f"ZwavePlugin: {resp.status_code} {resp.text} ")
