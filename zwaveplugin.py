@@ -73,8 +73,7 @@ class ZwavePlugin(FauxmoPlugin):
         zwave_user: str = "admin",
         zwave_pass: str = None,
         zwave_auth: str = None,
-        fake_state: bool = False,
-        state: str = "unknown",
+        fake_state: bool = False
     ) -> None:
         """Initialize a ZwaveAPIPlugin instance.
 
@@ -85,8 +84,7 @@ class ZwavePlugin(FauxmoPlugin):
             zwave_pass: Zwave user password
             zwave_auth: Zwave authorization bearer ZWAYSession token (preferent) 
             fake_state: Set to true for it does not exec a query for status,
-                        it returns the previous status stored
-            state:      Initial device status
+                        it returns the latest action stored
 
         """
         self.zwave_host = zwave_host
@@ -129,7 +127,6 @@ class ZwavePlugin(FauxmoPlugin):
 
         if resp.status_code == 200:
             if resp.text == response_ok:
-                self.state = cmd
                 return True
 
         logger.error(f"ZwavePlugin: {resp.status_code} {resp.text} ")
@@ -163,8 +160,8 @@ class ZwavePlugin(FauxmoPlugin):
 
         """
         if self.fake_state:
-            logger.info(f"ZwavePlugin: return fake {self.state} ")
-            return self.state
+            logger.info(f"ZwavePlugin: return fake state latest_action")
+            return super().get_state()
 
         url = (
             "http://"
